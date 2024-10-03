@@ -98,17 +98,47 @@ def custom_url_encode(string, encode_chars):
 			encoded_string += char 
 	return encoded_string 
 
+def custom_url_decode(encoded_string, decode_chars):
+	decode_set = set(decode_chars)
+	decoded_string = ''
+	i=0
+	while i<len(encoded_string):
+		char = encoded_string[i]
+		if char == '%':
+			if i+2 < len(encoded_string):
+				hex_value = encoded_string[i+1:i+3]
+				try:
+					decoded_char = chr(int(hex_value, 16))
+					if decoded_char in decode_set:
+						decoded_string += decoded_char
+						i+=3
+						continue
+				except ValueError:
+					pass
+		decoded_string += char
+		i+=1
+	return decoded_string
 	
 def submit():
 	random.seed(42)
 	key = generate_random_key(16)
-	random_iv = generate_random_iv(16)
+	iv = generate_random_iv(16)
+
 	string = input("Enter arbitrary string : ")
 	plaintext = "userid=456;userdata=" 
 	plaintext += string 
 	plaintext += ";session-id=31337"
-	plaintext = custom_url_encode(plaintext, [';', '='])
-	ciphertext = cbc_encrypt(plaintext, )
+	urlEncodedPlainText = custom_url_encode(plaintext, [';', '='])
+	checker = custom_url_decode(urlEncodedPlainText, [';', '='])
+	if(checker != plaintext):
+		raise ValueError('URL Encoding Failed')
+	urlEncodedPlainText = urlEncodedPlainText.encode('utf-8')
+	ciphertext = cbc_encrypt(urlEncodedPlainText, key, iv)
+	checker = cbc_decrypt(ciphertext, key, iv)
+	if(checker != urlEncodedPlainText):
+		raise ValueError('CBC Encryption Failed')
+	return ciphertext
+
 
 def main():
 
