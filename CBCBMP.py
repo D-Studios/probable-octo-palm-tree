@@ -86,28 +86,34 @@ def generate_random_key(length) :
 def generate_random_iv(length):
 	random_iv = bytes(random.getrandbits(8) for i in range(length))
 	return random_iv
-	
+
 
 def main():
-	plainTextFile = input("Enter plaintext file name : ")
+	bmpFile = input("Enter plaintext file name : ")
+	checkerFile = input("Enter in file name for the decrpytion of encryption of bmp file : ")
 	key = generate_random_key(16)
 	random_iv = generate_random_iv(16)
 	outputFile = input("Enter output filename: ")
-	plaintext = ""
+	bmpBytes = ""
 
-	with open(plainTextFile) as file:
-		plaintext = file.read()
+	with open(bmpFile, 'rb') as file:
+		bmpBytes = file.read()
 
-	plaintext = plaintext.encode('utf-8')
-	ciphertext = cbc_encrypt(plaintext, key, random_iv)
+	bmpHeader = bmpBytes[0:54]
+	bmpPlainText = bmpBytes[54:]
+	ciphertext = cbc_encrypt(bmpPlainText, key, random_iv)
 	checker = cbc_decrypt(ciphertext, key, random_iv)
+	checker = bmpHeader + checker
 
-	if(checker != plaintext):
+	if(checker != bmpBytes):
 		raise ValueError("Something is wrong with encryption/decryption.")
 		return
 
-	with open(outputFile, 'w') as file:
-		file.write(f"{ciphertext}")
+	with open(checkerFile, 'wb') as file:
+		file.write(checker)
+
+	with open(outputFile, 'wb') as file:
+		file.write(ciphertext)
 
 if __name__ == '__main__':
 	main()

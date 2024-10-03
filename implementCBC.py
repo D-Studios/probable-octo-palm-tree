@@ -95,10 +95,9 @@ def main():
 	outputFile = input("Enter output filename: ")
 	plaintext = ""
 
-	with open(plainTextFile) as file:
+	with open(plainTextFile, 'rb') as file:
 		plaintext = file.read()
 
-	plaintext = plaintext.encode('utf-8')
 	ciphertext = cbc_encrypt(plaintext, key, random_iv)
 	checker = cbc_decrypt(ciphertext, key, random_iv)
 
@@ -106,8 +105,8 @@ def main():
 		raise ValueError("Something is wrong with encryption/decryption.")
 		return
 
-	with open(outputFile, 'w') as file:
-		file.write(f"{ciphertext}")
+	with open(outputFile, 'wb') as file:
+		file.write(ciphertext)
 
 if __name__ == '__main__':
 	main()
