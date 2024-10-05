@@ -118,12 +118,18 @@ def custom_url_decode(encoded_string, decode_chars):
 		decoded_string += char
 		i+=1
 	return decoded_string
-	
-def submit():
-	random.seed(42)
-	key = generate_random_key(16)
-	iv = generate_random_iv(16)
 
+def verify(string, key, iv):
+	decryptedBytes = cbc_decrypt(string, key, iv)
+	decryptedString = decryptedBytes.decode('utf-8')
+	print(decryptedString)
+	if ";admin=true;" in decryptedString:
+		return True
+	else:
+		return False
+
+	
+def submit(key, iv):
 	string = input("Enter arbitrary string : ")
 	plaintext = "userid=456;userdata=" 
 	plaintext += string 
@@ -142,8 +148,13 @@ def submit():
 
 
 def main():
+	random.seed(42)
+	key = generate_random_key(16)
+	iv = generate_random_iv(16)
 
-	submit()
+	string = submit(key, iv)
+	print(string)
+	print(verify(string, key, iv))
 	# with open(plainTextFile, 'rb') as file:
 	# 	plaintext = file.read()
 
