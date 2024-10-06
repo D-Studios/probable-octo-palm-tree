@@ -121,7 +121,12 @@ def custom_url_decode(encoded_string, decode_chars):
 
 def verify(string, key, iv):
 	decryptedBytes = cbc_decrypt(string, key, iv)
-	decryptedString = decryptedBytes.decode('utf-8')
+	print("Decrypted Bytes : ", decryptedBytes)
+	try:
+		decryptedString = decryptedBytes.decode('utf-8')
+	except UnicodeDecodeError as e:
+		print("Failed to decode:", e)
+		return False
 	print(decryptedString)
 	if ";admin=true;" in decryptedString:
 		return True
@@ -130,20 +135,71 @@ def verify(string, key, iv):
 
 	
 def submit(key, iv):
+	#Type '' 
 	string = input("Enter arbitrary string : ")
 	plaintext = "userid=456;userdata=" 
-	plaintext += string 
+	plaintext += custom_url_encode(string, [';', '=']) 
 	plaintext += ";session-id=31337"
-	urlEncodedPlainText = custom_url_encode(plaintext, [';', '='])
-	checker = custom_url_decode(urlEncodedPlainText, [';', '='])
-	if(checker != plaintext):
-		raise ValueError('URL Encoding Failed')
-	urlEncodedPlainText = urlEncodedPlainText.encode('utf-8')
-	ciphertext = cbc_encrypt(urlEncodedPlainText, key, iv)
+	#userid=456;userdata=;session-id=31337
+	print(plaintext)
+	encodedPlainText = plaintext.encode('utf-8')
+	ciphertext = cbc_encrypt(encodedPlainText, key, iv)
 	checker = cbc_decrypt(ciphertext, key, iv)
-	if(checker != urlEncodedPlainText):
+	if(checker != encodedPlainText):
 		raise ValueError('CBC Encryption Failed')
 	return ciphertext
+
+# def cbc_encrypt(plaintext, key, initializationVector):
+# 	data = pad(plaintext)
+# 	cipher = AES.new(key, AES.MODE_ECB)
+# 	ciphertext = b""
+# 	prev_block = initializationVector
+# 	for i in range(0, len(data), BLOCKSIZE):
+# 		block = data[i : i+BLOCKSIZE]
+# 		xored = bytes(xorFunction(block, prev_block))
+# 		encrypted_block = cipher.encrypt(xored)
+# 		ciphertext += encrypted_block
+# 		prev_block = encrypted_block
+# 	return ciphertext
+
+# def pad(plaintextMessage):
+# 	padSize = BLOCKSIZE - (len(plaintextMessage) % BLOCKSIZE)
+# 	padding = bytes([padSize] * padSize)
+# 	data = plaintextMessage + padding 
+# 	return data
+
+def breakCBC(ciphertext):
+    # Convert ciphertext to a mutable bytearray for modification
+    print(len(ciphertext))
+    split_bytes = [ciphertext[i:i + 16] for i in range(0, len(ciphertext), 16)]
+    print(split_bytes)
+
+    modified_ciphertext = bytearray(ciphertext)
+
+    offset = len(split_bytes) - 1
+    target = b'admin=true;'
+    target = pad(target)
+    prev_block = split_bytes[offset]
+    xored = bytes(xorFunction(target, prev_block))
+
+
+    modified_ciphertext.append()
+
+    # Offset where 'userdata=' starts in the plaintext
+    # userdata_offset = 15  # Length of 'userid=456;'
+    
+    # # Create target string we want to inject
+    # target = b'admin=true;'
+    
+    # # Length of the target string
+    # target_length = len(target)
+    
+    # # Calculate the length of the original ciphertext's userdata section
+    # # Here, we are just modifying the first block of data to achieve our goal
+    # for i in range(target_length):
+    #     modified_ciphertext[userdata_offset + i] ^= (ciphertext[userdata_offset + i] ^ target[i])
+
+    # return bytes(modified_ciphertext)
 
 
 
@@ -154,7 +210,11 @@ def main():
 
 	string = submit(key, iv)
 	print(string)
-	print(verify(string, key, iv))
+	# breakCBC(string)
+	# newString = breakCBC(string)
+	# print("\n\n\n\nNew String : ")
+	# print(newString)
+	# print(verify(newString, key, iv))
 	# with open(plainTextFile, 'rb') as file:
 	# 	plaintext = file.read()
 
