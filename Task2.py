@@ -282,8 +282,11 @@ def main():
 
 	print("\n\n\n")
 	print(string)
-	print("String 34")
-	string[18] = string[18]^ string[34] ^ ord(';')
+	print("String 18")
+	string[18] = string[18] ^ ord('B') ^ ord(';')
+	
+	print("String")
+	print(string)
 	print("\n\n\n")
 
 	decryptedBytes = cbc_decrypt(string, key, iv)
