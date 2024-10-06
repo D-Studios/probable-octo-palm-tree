@@ -140,10 +140,11 @@ def submit(key, iv):
 	plaintext = "userid=456;userdata=" 
 	plaintext += custom_url_encode(string, [';', '=']) 
 	plaintext += ";session-id=31337"
-	#userid=456;userdata=;session-id=31337
+	#userid=456;userdata=;admin=true;session-id=31337
 	print(plaintext)
 	encodedPlainText = plaintext.encode('utf-8')
 	ciphertext = cbc_encrypt(encodedPlainText, key, iv)
+	print()
 	checker = cbc_decrypt(ciphertext, key, iv)
 	if(checker != encodedPlainText):
 		raise ValueError('CBC Encryption Failed')
