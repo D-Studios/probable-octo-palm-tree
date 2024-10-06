@@ -136,9 +136,9 @@ def verify(string, key, iv):
 	
 def submit(key, iv):
 	#Type '' 
-	string = input("Enter arbitrary string : ")
+	user_provided_string = input("Enter arbitrary string : ")
 	plaintext = "userid=456;userdata=" 
-	plaintext += custom_url_encode(string, [';', '=']) 
+	plaintext += custom_url_encode(user_provided_string, [';', '=']) 
 	plaintext += ";session-id=31337"
 	#userid=456;userdata=;session-id=31337
 	print(plaintext)
@@ -202,6 +202,27 @@ def breakCBC(ciphertext):
     # return bytes(modified_ciphertext)
 
 
+def visualize_blocks(plaintext):
+    """Visualize how the plaintext splits into 16-byte blocks."""
+    blocks = split_blocks(plaintext)
+    for i, block in enumerate(blocks):
+        print(f"Block {i + 1}: {block} ({block.decode(errors='replace')})")
+
+def split_blocks(data):
+    """Split the given data into blocks of size BLOCKSIZE (16 bytes)."""
+    return [data[i:i + BLOCKSIZE] for i in range(0, len(data), BLOCKSIZE)]
+
+def flip_bit(ciphertext, block_idx, byte_offset, bit_index):
+    # Convert ciphertext to a mutable bytearray
+    mutable_ciphertext = bytearray(ciphertext)
+
+    # Get the position in the ciphertext we want to flip
+    position = block_idx * BLOCKSIZE + byte_offset
+
+    # Flip the specified bit
+    mutable_ciphertext[position] ^= (1 << bit_index)
+
+    return bytes(mutable_ciphertext)
 
 def main():
 	random.seed(42)
@@ -209,24 +230,28 @@ def main():
 	iv = generate_random_iv(16)
 
 	string = submit(key, iv)
+	# Visualize the blocks of the URL-encoded plaintext before encryption
+	print("Plaintext blocks before encryption:")
+	urlEncodedPlainText = "userid%3D456%3Buserdata=foo%3Bsession-id%3D31337".encode('utf-8')
+	visualize_blocks(urlEncodedPlainText)
+
+	print("\nCiphertext:")
 	print(string)
-	# breakCBC(string)
-	# newString = breakCBC(string)
-	# print("\n\n\n\nNew String : ")
-	# print(newString)
-	# print(verify(newString, key, iv))
-	# with open(plainTextFile, 'rb') as file:
-	# 	plaintext = file.read()
 
-	# ciphertext = cbc_encrypt(plaintext, key, random_iv)
-	# checker = cbc_decrypt(ciphertext, key, random_iv)
+	# Visualize the ciphertext blocks (optional)
+	print("\nCiphertext blocks:")
+	visualize_blocks(string)
 
-	# if(checker != plaintext):
-	# 	raise ValueError("Something is wrong with encryption/decryption.")
-	# 	return
+	# Verify admin access with original and modified ciphertext
+	print("\nAdmin access granted:", verify(string, key, iv))
 
-	# with open(outputFile, 'wb') as file:
-	# 	file.write(ciphertext)
+	# Modify the ciphertext (flip bits in block 1 to affect block 2)
+	modified_ciphertext = flip_bit(string, 1, 2, 0)
+	print("\nAdmin access granted after bit flip:", verify(modified_ciphertext, key, iv))
+
+	# Decrypt the modified ciphertext
+	decrypted = cbc_decrypt(modified_ciphertext, key, iv)
+	print("Decrypted modified ciphertext:", decrypted)
 
 if __name__ == '__main__':
 	main()
