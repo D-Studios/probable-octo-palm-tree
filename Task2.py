@@ -284,6 +284,12 @@ def main():
 	print(string)
 	print("String 18")
 	string[18] = string[18] ^ ord('B') ^ ord(';')
+	string[24] = string[24] ^ ord('%') ^ ord('=')
+	string[25] = string[25] ^ ord('3') ^ ord('t')
+	string[26] = string[26] ^ ord('D') ^ ord('r')
+	string[27] = string[27] ^ ord('t') ^ ord('u')
+	string[28] = string[28] ^ ord('r') ^ ord('e')
+	string[29] = string[29] ^ ord('u') ^ ord(';')
 	
 	print("String")
 	print(string)
