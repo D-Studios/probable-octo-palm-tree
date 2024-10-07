@@ -66,34 +66,6 @@ def cbc_decrypt(ciphertext, key, initializationVector):
     plaintext = unpad(decryptedCipherText)
     return plaintext
 
-# def cbc_encrypt(plaintext, key, initializationVector):
-# 	data = pad(plaintext)
-# 	cipher = AES.new(key, AES.MODE_ECB)
-# 	ciphertext = b""
-# 	prev_block = initializationVector
-# 	for i in range(0, len(data), BLOCKSIZE):
-# 		block = data[i : i+BLOCKSIZE]
-# 		xored = bytes(xorFunction(block, prev_block))
-# 		encrypted_block = cipher.encrypt(xored)
-# 		ciphertext += encrypted_block
-# 		prev_block = encrypted_block
-# 	return ciphertext
-
-# def cbc_decrypt(ciphertext, key, initializationVector):
-# 	cipher = AES.new(key, AES.MODE_ECB)
-# 	if len(ciphertext)%BLOCKSIZE != 0:
-# 		raise ValueError("Decrypted ciphertext not multiple of block size.")
-	
-# 	decryptedCipherText = b""
-# 	prev_block = initializationVector
-
-# 	for i in range(0, len(ciphertext), BLOCKSIZE):
-# 		block = ciphertext[i : i+BLOCKSIZE]
-# 		decrypted_block = cipher.decrypt(block)
-# 		decryptedCipherText += bytes(xorFunction(decrypted_block, prev_block))
-# 		prev_block = block
-# 	plaintext = unpad(decryptedCipherText)
-# 	return plaintext
 
 def generate_random_key(length) :
 	characters = string.ascii_letters + string.digits
@@ -138,29 +110,20 @@ def custom_url_decode(encoded_string, decode_chars):
 def verify(string, key, iv):
 	decryptedBytes = cbc_decrypt(string, key, iv)
 	print("Decrypted Bytes : ", decryptedBytes)
-	try:
-		decryptedString = decryptedBytes.decode('utf-8')
-	except UnicodeDecodeError as e:
-		print("Failed to decode:", e)
-		return False
-	print(decryptedString)
-	if ";admin=true;" in decryptedString:
+	if b';admin=true;' in decryptedBytes:
 		return True
 	else:
 		return False
 
 	
 def submit(key, iv):
-	#Type '' 
+	#Type 'abcdefghijkl;admin=true;' 
 	global USER_STRING
 	user_provided_string = input("Enter arbitrary string : ")
 	plaintext = "userid=456;userdata=" 
 	plaintext += custom_url_encode(user_provided_string, [';', '=']) 
 	plaintext += ";session-id=31337"
-	#userid=456;userdata=;admin=true;session-id=31337
-	print("submit: \n")
-	print(plaintext)
-	print("\n\n\n\n")
+	#userid=456;userdata=abcdefghijkl;admin=true;session-id=31337
 	encodedPlainText = plaintext.encode('utf-8')
 	USER_STRING = encodedPlainText
 	ciphertext = cbc_encrypt(encodedPlainText, key, iv)
@@ -168,59 +131,6 @@ def submit(key, iv):
 	if(checker != encodedPlainText):
 		raise ValueError('CBC Encryption Failed')
 	return ciphertext
-
-# def cbc_encrypt(plaintext, key, initializationVector):
-# 	data = pad(plaintext)
-# 	cipher = AES.new(key, AES.MODE_ECB)
-# 	ciphertext = b""
-# 	prev_block = initializationVector
-# 	for i in range(0, len(data), BLOCKSIZE):
-# 		block = data[i : i+BLOCKSIZE]
-# 		xored = bytes(xorFunction(block, prev_block))
-# 		encrypted_block = cipher.encrypt(xored)
-# 		ciphertext += encrypted_block
-# 		prev_block = encrypted_block
-# 	return ciphertext
-
-# def pad(plaintextMessage):
-# 	padSize = BLOCKSIZE - (len(plaintextMessage) % BLOCKSIZE)
-# 	padding = bytes([padSize] * padSize)
-# 	data = plaintextMessage + padding 
-# 	return data
-
-# def breakCBC(ciphertext):
-#     # Convert ciphertext to a mutable bytearray for modification
-#     print(len(ciphertext))
-#     split_bytes = [ciphertext[i:i + 16] for i in range(0, len(ciphertext), 16)]
-#     print(split_bytes)
-
-#     modified_ciphertext = bytearray(ciphertext)
-
-#     offset = len(split_bytes) - 1
-#     target = b';admin=true;'
-#     target = pad(target)
-#     prev_block = split_bytes[offset]
-#     xored = bytes(xorFunction(target, prev_block))
-
-
-#     modified_ciphertext.append()
-
-    # Offset where 'userdata=' starts in the plaintext
-    # userdata_offset = 15  # Length of 'userid=456;'
-    
-    # # Create target string we want to inject
-    # target = b'admin=true;'
-    
-    # # Length of the target string
-    # target_length = len(target)
-    
-    # # Calculate the length of the original ciphertext's userdata section
-    # # Here, we are just modifying the first block of data to achieve our goal
-    # for i in range(target_length):
-    #     modified_ciphertext[userdata_offset + i] ^= (ciphertext[userdata_offset + i] ^ target[i])
-
-    # return bytes(modified_ciphertext)
-
 
 def visualize_blocks(plaintext):
     """Visualize how the plaintext splits into 16-byte blocks."""
@@ -244,9 +154,6 @@ def flip_bit(ciphertext, block_idx, byte_offset, bit_index):
 
     return bytes(mutable_ciphertext)
 
-# def breakCBC(ciphertext):
-#     string = bytearray(ciphertext)
-
 
 def main():
 	global USER_STRING
@@ -255,34 +162,10 @@ def main():
 	iv = generate_random_iv(16)
 
 	string = bytearray(submit(key, iv))
-	# Visualize the blocks of the URL-encoded plaintext before encryption
-	# print("Plaintext blocks before encryption:")
-	# urlEncodedPlainText = "userid=456;userdata=%3Badmin%3Dtrue%3B;session-id=31337".encode('utf-8')
-	#userid=456;userdata=abcdefghijkl%3Badmin%3Dtrue%3B;session-id=31337
 	blocks = split_blocks(USER_STRING)
-	# visualize_blocks(urlEncodedPlainText)
 
-	print("Plaintext blocks sadfasf")
-	print(blocks)
-	for block in blocks:
-		print(block)
-		print("Len of block", len(block))
+	print("Plaintext blocks : ", blocks)
 
-	# blocks[2][0] = 
-
-	# print("\nCiphertext:")
-	# print(string)
-	blocks = split_blocks(string)
-
-	print("Ciphertext blocks")
-	print(blocks)
-	for block in blocks:
-		print(block)
-		print("Len of block", len(block))
-
-	print("\n\n\n")
-	print(string)
-	print("String 18")
 	string[18] = string[18] ^ ord('B') ^ ord(';')
 	string[24] = string[24] ^ ord('%') ^ ord('=')
 	string[25] = string[25] ^ ord('3') ^ ord('t')
@@ -290,27 +173,8 @@ def main():
 	string[27] = string[27] ^ ord('t') ^ ord('u')
 	string[28] = string[28] ^ ord('r') ^ ord('e')
 	string[29] = string[29] ^ ord('u') ^ ord(';')
-	
-	print("String")
-	print(string)
-	print("\n\n\n")
 
-	decryptedBytes = cbc_decrypt(string, key, iv)
-	print("Decrypted Bytes : ", decryptedBytes)
-	# # Visualize the ciphertext blocks (optional)
-	# print("\nCiphertext blocks:")
-	# visualize_blocks(string)
-
-	# # Verify admin access with original and modified ciphertext
-	# print("\nAdmin access granted:", verify(string, key, iv))
-
-	# # Modify the ciphertext (flip bits in block 1 to affect block 2)
-	# modified_ciphertext = flip_bit(string, 1, 2, 0)
-	# print("\nAdmin access granted after bit flip:", verify(modified_ciphertext, key, iv))
-
-	# # Decrypt the modified ciphertext
-	# decrypted = cbc_decrypt(modified_ciphertext, key, iv)
-	# print("Decrypted modified ciphertext:", decrypted)
+	print("Verify : ", verify(string, key, iv))
 
 if __name__ == '__main__':
 	main()
